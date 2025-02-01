@@ -1,50 +1,67 @@
+import { useState, useEffect } from "react";
+import * as CountriesApi from "../services/country-services";
 import { Link, useParams } from "react-router-dom";
-import countries from "../assets/countries.json"
 
 function CountryDetails() {
-    const { countryId } = useParams();
+  const [countryDetail, setCountryDetail] = useState(null);
+  const [isLoading, setIsLoading] = useState(true)
+  const { countryId } = useParams();
 
-    const country = countries.find((c) => c.alpha3Code === countryId);
+  useEffect(() => {
+    CountriesApi.getCountry(countryId)
+      .then((response) => {
+        console.log(response.name);
+        setCountryDetail(response);
+        setIsLoading(false)
+      })
+      .catch((err) => console.error(err));
+  }, [countryId]);
 
-    return (
+  return (
+    <>
       <div className="container">
-        <p style={{ fontSize: "24px", fontWeight: "bold" }}>Country Details</p>
-  
-        <h1>{country.name.common}</h1>
-  
-        <table className="table">
-          <thead></thead>
-          <tbody>
-            <tr>
-              <td style={{ width: "30%" }}>Capital</td>
-              <td>{country.capital}</td>
-            </tr>
-            <tr>
-              <td>Area</td>
-              <td>
-                {country.area} km
-                <sup>2</sup>
-              </td>
-            </tr>
-            <tr>
-              <td>Borders</td>
-              <td>
-                <ul>
-                    {country.borders.map((b) => {
-                        const borderCountry = countries.find((c) => c.alpha3Code === b);
-                         return (
-                            <li key={b}>
-                                <Link to={`/${b}`}>{borderCountry.name.common}</Link>
-                            </li>
-                    );
-                    })}
-                </ul>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <p>Country Details</p>
+        {isLoading? <p>Loading...</p> : null}
+        
+        {countryDetail ? (
+          <>
+            <h1>{countryDetail.name?.common}</h1>
+
+            <table className="table">
+              <thead></thead>
+              <tbody>
+                <tr>
+                  <td>Capital</td>
+                  <td>{countryDetail.capital}</td>
+                </tr>
+                <tr>
+                  <td>Area</td>
+                  <td>
+                    {countryDetail.area} km
+                    <sup>2</sup>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Borders</td>
+                  <td>
+                    <ul>
+                      {countryDetail.borders.map((border, index)=>(
+                        <li key={index}>
+                          <Link to={`/${border}`}>{border}</Link>
+                        </li>
+                      ))}
+                       
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </>
+        ) : null 
+        }
       </div>
-    );
-  }
-  
-  export default CountryDetails;
+    </>
+  );
+}
+
+export default CountryDetails;
